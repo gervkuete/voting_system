@@ -75,13 +75,13 @@ public class Elector extends User {
                         id = rs.getInt("Id");
                     }
                     
-                    String updateStatus = "UPDATE elector_t SET voted = " + true + "WHERE User_Id = ?";
+                    String updateStatus = "UPDATE elector_t SET voted = " + true + "WHERE user_Id = ?";
                     pstm = con.prepareStatement(updateStatus);
                     pstm.setInt(1, id);
-                    pstm.executeUpdate();
-                    //if (count == 1) {
+                    int count = pstm.executeUpdate();
+                    if (count == 1) {
                         JOptionPane.showMessageDialog(null, "Thank you for voting\n Good bye!", "Message", JOptionPane.INFORMATION_MESSAGE);
-                    //}
+                    }
                 } catch (SQLException ex) {
                     Logger.getLogger(Elector.class.getName()).log(Level.SEVERE, null, ex);
                 } finally {
