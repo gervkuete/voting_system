@@ -420,6 +420,11 @@ public class AdminControlPanel extends javax.swing.JFrame {
 
         btnDeleteElections.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         btnDeleteElections.setText("Delete");
+        btnDeleteElections.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDeleteElectionsActionPerformed(evt);
+            }
+        });
 
         btnEditElection.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         btnEditElection.setText("Edit");
@@ -470,6 +475,11 @@ public class AdminControlPanel extends javax.swing.JFrame {
 
         btnOK3.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         btnOK3.setText("OK");
+        btnOK3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnOK3ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout editElectionPanelLayout = new javax.swing.GroupLayout(editElectionPanel);
         editElectionPanel.setLayout(editElectionPanelLayout);
@@ -1138,7 +1148,7 @@ public class AdminControlPanel extends javax.swing.JFrame {
         // view electors
         switchPanels(viewElectorPanel);
         DefaultTableModel model = (DefaultTableModel) electorTable.getModel();
-        
+
         while (model.getRowCount() > 0) {
             for (int count = 0; count < model.getRowCount(); count++) {
                 model.removeRow(count);
@@ -1260,19 +1270,18 @@ public class AdminControlPanel extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Please fill all mandatory fields (*)", "Information", JOptionPane.INFORMATION_MESSAGE);
         } else {
 
-            PreparedStatement pst = null;
             String sql = "INSERT INTO polls (title, date, description) VALUES (?, ?, ?)";
             int count;
 
             try {
 
-                pst = con.prepareStatement(sql);
-                pst.setString(1, electionTitleField.getText());
+                pstm = con.prepareStatement(sql);
+                pstm.setString(1, electionTitleField.getText());
                 SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
                 String date = formatter.format(electionDateChooser.getDateEditor().getDate());
-                pst.setString(2, date);
-                pst.setString(3, descriptionArea.getText());
-                count = pst.executeUpdate();
+                pstm.setString(2, date);
+                pstm.setString(3, descriptionArea.getText());
+                count = pstm.executeUpdate();
 
                 if (count == 1) {
                     JOptionPane.showMessageDialog(this, "Election created successfully!", "Information", JOptionPane.INFORMATION_MESSAGE);
@@ -1283,10 +1292,6 @@ public class AdminControlPanel extends javax.swing.JFrame {
 
             } catch (SQLException ex) {
                 Logger.getLogger(AdminControlPanel.class.getName()).log(Level.SEVERE, null, ex);
-            } finally {
-                DatabaseConnection.closePrepareStatement(pst);
-                DatabaseConnection.closeConnection(con);
-
             }
         }
     }//GEN-LAST:event_btnOKActionPerformed
@@ -1295,10 +1300,54 @@ public class AdminControlPanel extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_editElectionTitleFieldActionPerformed
 
+    // delete candidate
     private void btnDeleteCandidateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteCandidateActionPerformed
-        // TODO add your handling code here:
+        DefaultTableModel defaultModel = (DefaultTableModel) tblListCandidate.getModel();
+        int selectedRow = tblListCandidate.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Please choose candidate to delete", "Information", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+
+            // get id of the selected record
+            Object id = defaultModel.getValueAt(selectedRow, 0);
+
+            // delete the corresonding record from the database
+            String query = "DELETE FROM candidate WHERE Id = ? ";
+            String delete = "DELETE FROM election WHERE candidate_Id = ?";
+            String sql = "DELETE FROM candidate_polls WHERE candidate_Id = ?";
+            try {
+
+                // delete foreign key of the record in election table
+                pstm = con.prepareStatement(delete);
+                pstm.setObject(1, id);
+                int count1 = pstm.executeUpdate();
+
+                // delete foreign key of the record in candidate_polls table
+                pstm = con.prepareStatement(sql);
+                pstm.setObject(1, id);
+                int count2 = pstm.executeUpdate();
+
+                // delete properly the candidate
+                if (count1 == 1 && count2 == 1) {
+                    pstm = con.prepareStatement(query);
+                    pstm.setObject(1, id);
+                    int count = pstm.executeUpdate();
+                    if (count == 1) {
+                        JOptionPane.showMessageDialog(this, "Candidate deleted successfuly", "Information", JOptionPane.INFORMATION_MESSAGE);
+                        defaultModel.removeRow(selectedRow);
+                        tblListCandidate.setModel(defaultModel);
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(this, "Sorry you cannot delete this candidate", "Delete candidate", JOptionPane.WARNING_MESSAGE);
+                }
+
+            } catch (SQLException ex) {
+                Logger.getLogger(AdminControlPanel.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
     }//GEN-LAST:event_btnDeleteCandidateActionPerformed
 
+    // activate election
     private void btnActivateElectionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnActivateElectionActionPerformed
 
         // activate an election to enable electors to vote
@@ -1348,8 +1397,29 @@ public class AdminControlPanel extends javax.swing.JFrame {
 
     }//GEN-LAST:event_btnSubmitActionPerformed
 
+    // edit election
     private void btnEditElectionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditElectionActionPerformed
-        switchPanels3(editElectionPanel);
+        int selectedRow = electionTable.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Please select election to edit");
+        } else {
+            getId = electionTable.getValueAt(selectedRow, 0);
+            String sqlQuery = "SELECT * FROM polls WHERE Id = ?";
+
+            try {
+
+                pstm = con.prepareStatement(sqlQuery);
+                pstm.setObject(1, getId);
+                rs = pstm.executeQuery();
+                if (rs.next()) {
+                    editElectionTitleField.setText(rs.getString("title"));
+                    editDescriptionArea.setText(rs.getString("description"));
+                }
+                switchPanels3(editElectionPanel);
+            } catch (SQLException ex) {
+                Logger.getLogger(AdminControlPanel.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
     }//GEN-LAST:event_btnEditElectionActionPerformed
 
     // choose an election and add candidates to it
@@ -1359,7 +1429,7 @@ public class AdminControlPanel extends javax.swing.JFrame {
 
         // get Id of election to add candidate to
         if (selectedItem.equals("-select an election-")) {
-            JOptionPane.showMessageDialog(this, "Please select an election", "Reminder", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select an election");
         } else {
 
             String sql = "SELECT Id FROM Polls WHERE title=?";
@@ -1463,6 +1533,8 @@ public class AdminControlPanel extends javax.swing.JFrame {
     }//GEN-LAST:event_btnActivateActionPerformed
 
     private void jComboBox2PopupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent evt) {//GEN-FIRST:event_jComboBox2PopupMenuWillBecomeInvisible
+
+        String selectedItem = (String) jComboBox2.getSelectedItem();
         DefaultTableModel model = (DefaultTableModel) tblListCandidate.getModel();
 
         while (model.getRowCount() > 0) {
@@ -1470,8 +1542,6 @@ public class AdminControlPanel extends javax.swing.JFrame {
                 model.removeRow(count);
             }
         }
-        String selectedItem = (String) jComboBox2.getSelectedItem();
-
         // get id of the selected election
         String query = "SELECT Id FROM polls WHERE title=?";
         try {
@@ -1510,11 +1580,74 @@ public class AdminControlPanel extends javax.swing.JFrame {
                 }
                 tblListCandidate.setModel(model);
             }
+
         } catch (SQLException ex) {
             Logger.getLogger(AdminControlPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }//GEN-LAST:event_jComboBox2PopupMenuWillBecomeInvisible
+
+    // delete election
+    private void btnDeleteElectionsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteElectionsActionPerformed
+        DefaultTableModel model = (DefaultTableModel) electionTable.getModel();
+        int selectedRow = electionTable.getSelectedRow();
+
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Please election to delete", "Delete", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+
+            String sqlDelete = "DELETE FROM polls WHERE Id = ?";
+            String delete = "DELETE FROM election WHERE polls_Id = ?";
+            Object id = model.getValueAt(selectedRow, 0);
+            try {
+
+                // delete foreign key in election table
+                pstm = con.prepareStatement(delete);
+                pstm.setObject(1, id);
+                int count = pstm.executeUpdate();
+                if (count > 0) {
+                    pstm = con.prepareStatement(sqlDelete);
+                    pstm.setObject(1, id);
+                    int count2 = pstm.executeUpdate();
+
+                    // delete record in polls table
+                    if (count2 > 0) {
+                        JOptionPane.showMessageDialog(this, "Election deleted", "Delete election", JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Sorry, cannot delete election", delete, count);
+                    }
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(AdminControlPanel.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+        }
+    }//GEN-LAST:event_btnDeleteElectionsActionPerformed
+
+    // validate edited election 
+    private void btnOK3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnOK3ActionPerformed
+
+        String title = editElectionTitleField.getText();
+        String description = editDescriptionArea.getText();
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        String date = formatter.format(jDateChooser1.getDateEditor().getDate());
+        String sqlUpdate = "UPDATE polls SET title = '" + title + "', description = '" + description + "', date = '" + date + "' WHERE Id = ?";
+        try {
+            pstm = con.prepareStatement(sqlUpdate);
+            pstm.setObject(1, getId);
+            int count = pstm.executeUpdate();
+            if (count > 0) {
+                JOptionPane.showMessageDialog(this, "Election updated");
+                editElectionTitleField.setText(null);
+                editDescriptionArea.setText(null);
+                jDateChooser1.setCalendar(null);
+                switchPanels3(emptyElectionPanel);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(AdminControlPanel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }//GEN-LAST:event_btnOK3ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -1648,6 +1781,8 @@ public class AdminControlPanel extends javax.swing.JFrame {
     private javax.swing.JPanel viewElectionsPanel;
     private javax.swing.JPanel viewElectorPanel;
     // End of variables declaration//GEN-END:variables
+
+    Object getId;
 
 // load elections into JcomboBox1
     private void loadElections() {
