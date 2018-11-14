@@ -164,6 +164,7 @@ public class Login extends javax.swing.JFrame {
         passwordField.setText(null);
     }//GEN-LAST:event_btnResetActionPerformed
 
+    // verify if user can access the system and login
     private void btnLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLoginActionPerformed
         String userName = userNameField.getText();
         String password = passwordField.getText();

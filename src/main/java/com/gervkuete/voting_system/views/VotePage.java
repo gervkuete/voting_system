@@ -34,7 +34,6 @@ public class VotePage extends javax.swing.JFrame {
     private void initComponents() {
 
         pannel1 = new javax.swing.JPanel();
-        btnOK = new javax.swing.JButton();
         lblForVote = new javax.swing.JLabel();
         jScrollPane3 = new javax.swing.JScrollPane();
         listOfElections = new javax.swing.JList();
@@ -46,20 +45,14 @@ public class VotePage extends javax.swing.JFrame {
         btnVote = new javax.swing.JButton();
         jSeparator1 = new javax.swing.JSeparator();
         jMenuBar1 = new javax.swing.JMenuBar();
+        jMenu2 = new javax.swing.JMenu();
+        jMenuItem2 = new javax.swing.JMenuItem();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         pannel1.setBorder(javax.swing.BorderFactory.createTitledBorder("list of elections"));
-
-        btnOK.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
-        btnOK.setText("OK");
-        btnOK.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnOKActionPerformed(evt);
-            }
-        });
 
         lblForVote.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         lblForVote.setText("Choose election to vote for");
@@ -82,9 +75,7 @@ public class VotePage extends javax.swing.JFrame {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pannel1Layout.createSequentialGroup()
                 .addContainerGap(43, Short.MAX_VALUE)
-                .addGroup(pannel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 289, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnOK, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 289, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(45, 45, 45))
         );
         pannel1Layout.setVerticalGroup(
@@ -94,9 +85,7 @@ public class VotePage extends javax.swing.JFrame {
                 .addComponent(lblForVote)
                 .addGap(18, 18, 18)
                 .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 417, Short.MAX_VALUE)
-                .addGap(18, 18, 18)
-                .addComponent(btnOK)
-                .addGap(45, 45, 45))
+                .addGap(88, 88, 88))
         );
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder(""));
@@ -151,6 +140,20 @@ public class VotePage extends javax.swing.JFrame {
 
         jSeparator1.setOrientation(javax.swing.SwingConstants.VERTICAL);
 
+        jMenu2.setText("Results");
+        jMenu2.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+
+        jMenuItem2.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jMenuItem2.setText("View results");
+        jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem2ActionPerformed(evt);
+            }
+        });
+        jMenu2.add(jMenuItem2);
+
+        jMenuBar1.add(jMenu2);
+
         jMenu1.setText("Logout");
         jMenu1.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
 
@@ -199,19 +202,7 @@ public class VotePage extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 DefaultListModel model2 = new DefaultListModel();
 
-    private void btnOKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnOKActionPerformed
-        if (listOfElections.getSelectedValue() == null) {
-            JOptionPane.showMessageDialog(this, "Please choose an election");
-        } else {
-            candidateNames.stream().forEach((candidate) -> {
-                model2.addElement(candidate);
-            });
-            listCandidates.setModel(model2);
-        }
-
-
-    }//GEN-LAST:event_btnOKActionPerformed
-// fetch candidates for an election
+// fetch candidates for an election and show it in list
     private void listOfElectionsMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_listOfElectionsMouseClicked
 
         String selected = (String) listOfElections.getSelectedValue();
@@ -236,7 +227,7 @@ DefaultListModel model2 = new DefaultListModel();
 
             }
 
-            // get candidate names that matche the returned Ids from the table Candidate
+            // get candidate names that matche the returned Ids from the table Candidate and show it list
             String getCandidateNames = "SELECT name FROM candidate WHERE Id=?";
             pstm = con.prepareStatement(getCandidateNames);
             for (Integer id : candidateId) {
@@ -245,8 +236,12 @@ DefaultListModel model2 = new DefaultListModel();
                 while (rs.next()) {
                     candidateNames.add(rs.getString("Name"));
                 }
-
             }
+            
+            candidateNames.stream().forEach((candidate) -> {
+                model2.addElement(candidate);
+            });
+            listCandidates.setModel(model2);
 
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this, ex);
@@ -254,6 +249,7 @@ DefaultListModel model2 = new DefaultListModel();
         }
 
     }//GEN-LAST:event_listOfElectionsMouseClicked
+
 // retrieve picture of the selected candidate and show it.
     private void listCandidatesMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_listCandidatesMouseClicked
 
@@ -281,6 +277,7 @@ DefaultListModel model2 = new DefaultListModel();
             Logger.getLogger(VotePage.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_listCandidatesMouseClicked
+
 // vote a candidate
     private void btnVoteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVoteActionPerformed
 
@@ -292,6 +289,7 @@ DefaultListModel model2 = new DefaultListModel();
             Elector elector = votingSystem.getCurrentElector();
             if (elector != null) {
                 elector.vote();
+                dispose();
             } else {
                 try {
                     throw new Exception();
@@ -305,6 +303,11 @@ DefaultListModel model2 = new DefaultListModel();
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
         dispose();
     }//GEN-LAST:event_jMenuItem1ActionPerformed
+
+    private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
+       Results result = new Results();
+       result.setVisible(true);
+    }//GEN-LAST:event_jMenuItem2ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -342,11 +345,12 @@ DefaultListModel model2 = new DefaultListModel();
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnOK;
     private javax.swing.JButton btnVote;
     private javax.swing.JMenu jMenu1;
+    private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem1;
+    private javax.swing.JMenuItem jMenuItem2;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
@@ -366,6 +370,7 @@ DefaultListModel model2 = new DefaultListModel();
     // retrieve activated elections from the database and fill the list
     private void loadElections() {
         ArrayList<Integer> arrayOfId = new ArrayList<>();
+        // get Ids of activated elections
         String sql = "SELECT Polls_Id FROM election";
         try {
             smt = con.createStatement();

@@ -1,8 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package com.gervkuete.voting_system.models.dataAccess;
 
 import java.sql.DriverManager;
@@ -12,10 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import javax.swing.JOptionPane;
 
-/**
- *
- * @author Gervaislepetit
- */
+
 // this class contains a methods to connect to the database and to free resources
 public class DatabaseConnection {
 

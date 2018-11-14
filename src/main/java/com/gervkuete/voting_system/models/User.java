@@ -1,7 +1,6 @@
 package com.gervkuete.voting_system.models;
 
 import com.gervkuete.voting_system.models.dataAccess.DatabaseConnection;
-import com.gervkuete.voting_system.models.dataAccess.ElectorDAO;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -29,7 +28,7 @@ public class User {
 
     @Override
     public String toString() {
-        return +id + " " + name + " " + login;
+        return +id + " " + name;
     }
 
     // check if the user is authorized to access the system.

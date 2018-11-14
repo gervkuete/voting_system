@@ -66,6 +66,8 @@ public class Elector extends User {
                 VotePage.selectedCandidate.addVoice();
                 String name = this.getName();
                 int id = 0;
+                
+                // get id of the current elector
                 String sql = "SELECT Id FROM user_t WHERE name = ?";
                 try {
                     pstm = con.prepareStatement(sql);
@@ -75,11 +77,12 @@ public class Elector extends User {
                         id = rs.getInt("Id");
                     }
                     
-                    String updateStatus = "UPDATE elector_t SET voted = " + true + "WHERE user_Id = ?";
+                    // update the status of elector 
+                    String updateStatus = "UPDATE elector_t SET voted = '1' WHERE user_Id = ?";
                     pstm = con.prepareStatement(updateStatus);
                     pstm.setInt(1, id);
                     int count = pstm.executeUpdate();
-                    if (count == 1) {
+                    if (count > 0) {
                         JOptionPane.showMessageDialog(null, "Thank you for voting\n Good bye!", "Message", JOptionPane.INFORMATION_MESSAGE);
                     }
                 } catch (SQLException ex) {

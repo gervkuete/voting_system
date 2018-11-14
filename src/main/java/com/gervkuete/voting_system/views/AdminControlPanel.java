@@ -44,6 +44,7 @@ public class AdminControlPanel extends javax.swing.JFrame {
         this.setSize(xSize, ySize);
 
         loadElections();
+        populatejList1();
     }
 
     // get connection object
@@ -51,6 +52,7 @@ public class AdminControlPanel extends javax.swing.JFrame {
     Statement stm = null;
     ResultSet rs = null;
     PreparedStatement pstm = null;
+    DefaultListModel defaultModel = new DefaultListModel();
 
     private void switchPanels(JPanel panel) {
         layeredPane1.removeAll();
@@ -64,6 +66,34 @@ public class AdminControlPanel extends javax.swing.JFrame {
         electionLayeredPane.add(panel);
         electionLayeredPane.repaint();
         electionLayeredPane.revalidate();
+    }
+
+    private void populatejList1() {
+        ArrayList<Integer> arrayOfId = new ArrayList<>();
+        // get Ids of activated elections
+        String sql = "SELECT Polls_Id FROM election";
+        try {
+            stm = con.createStatement();
+            rs = stm.executeQuery(sql);
+            while (rs.next()) {
+                arrayOfId.add(rs.getInt("Polls_Id"));
+            }
+
+            // retrieve election by Id and add into model
+            String query = "SELECT Title FROM polls WHERE Id=?";
+            pstm = con.prepareStatement(query);
+            for (Integer id : arrayOfId) {
+                pstm.setInt(1, id);
+                rs = pstm.executeQuery();
+                if (rs.next()) {
+                    defaultModel.addElement(rs.getString("Title"));
+                }
+            }
+
+            jList1.setModel(defaultModel);
+        } catch (SQLException ex) {
+            Logger.getLogger(VotePage.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -125,7 +155,6 @@ public class AdminControlPanel extends javax.swing.JFrame {
         btnInsertCandidate = new javax.swing.JButton();
         jScrollPane3 = new javax.swing.JScrollPane();
         candidateTable = new javax.swing.JTable();
-        btnFinish = new javax.swing.JButton();
         viewCandidatePanel = new javax.swing.JPanel();
         lblListOfCandidate = new javax.swing.JLabel();
         scpListCandidate = new javax.swing.JScrollPane();
@@ -154,7 +183,10 @@ public class AdminControlPanel extends javax.swing.JFrame {
         lblListOfElectors = new javax.swing.JLabel();
         btnDeleteElector = new javax.swing.JButton();
         publishResultsPanel = new javax.swing.JPanel();
-        jLabel10 = new javax.swing.JLabel();
+        jScrollPane5 = new javax.swing.JScrollPane();
+        jList1 = new javax.swing.JList();
+        jLabel2 = new javax.swing.JLabel();
+        btnResults = new javax.swing.JButton();
         activateElectionPanel = new javax.swing.JPanel();
         listPanel = new javax.swing.JPanel();
         jScrollPane7 = new javax.swing.JScrollPane();
@@ -665,9 +697,6 @@ public class AdminControlPanel extends javax.swing.JFrame {
         });
         jScrollPane3.setViewportView(candidateTable);
 
-        btnFinish.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
-        btnFinish.setText("Finish");
-
         javax.swing.GroupLayout addCandidatePanelLayout = new javax.swing.GroupLayout(addCandidatePanel);
         addCandidatePanel.setLayout(addCandidatePanelLayout);
         addCandidatePanelLayout.setHorizontalGroup(
@@ -679,8 +708,7 @@ public class AdminControlPanel extends javax.swing.JFrame {
                         .addComponent(addCandidatePanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(btnInsertCandidate, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(btnFinish, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(106, 106, 106))
                     .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 903, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(37, Short.MAX_VALUE))
         );
@@ -693,9 +721,7 @@ public class AdminControlPanel extends javax.swing.JFrame {
                         .addComponent(addCandidatePanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(addCandidatePanelLayout.createSequentialGroup()
                         .addGap(242, 242, 242)
-                        .addGroup(addCandidatePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(btnFinish)
-                            .addComponent(btnInsertCandidate))))
+                        .addComponent(btnInsertCandidate)))
                 .addGap(33, 33, 33)
                 .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 252, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(69, Short.MAX_VALUE))
@@ -972,6 +998,11 @@ public class AdminControlPanel extends javax.swing.JFrame {
 
         btnDeleteElector.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         btnDeleteElector.setText("Delete");
+        btnDeleteElector.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDeleteElectorActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout viewElectorPanelLayout = new javax.swing.GroupLayout(viewElectorPanel);
         viewElectorPanel.setLayout(viewElectorPanelLayout);
@@ -1009,24 +1040,43 @@ public class AdminControlPanel extends javax.swing.JFrame {
 
         publishResultsPanel.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
 
-        jLabel10.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
-        jLabel10.setText("Publish results");
+        jScrollPane5.setViewportView(jList1);
+
+        jLabel2.setText("Elections that resuts can be published");
+
+        btnResults.setText("Publish results");
+        btnResults.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnResultsActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout publishResultsPanelLayout = new javax.swing.GroupLayout(publishResultsPanel);
         publishResultsPanel.setLayout(publishResultsPanelLayout);
         publishResultsPanelLayout.setHorizontalGroup(
             publishResultsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(publishResultsPanelLayout.createSequentialGroup()
-                .addGap(378, 378, 378)
-                .addComponent(jLabel10)
-                .addContainerGap(448, Short.MAX_VALUE))
+                .addGroup(publishResultsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 259, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(publishResultsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(publishResultsPanelLayout.createSequentialGroup()
+                            .addGap(192, 192, 192)
+                            .addComponent(jLabel2))
+                        .addGroup(publishResultsPanelLayout.createSequentialGroup()
+                            .addGap(338, 338, 338)
+                            .addComponent(btnResults))))
+                .addContainerGap(538, Short.MAX_VALUE))
         );
         publishResultsPanelLayout.setVerticalGroup(
             publishResultsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(publishResultsPanelLayout.createSequentialGroup()
-                .addGap(188, 188, 188)
-                .addComponent(jLabel10)
-                .addContainerGap(415, Short.MAX_VALUE))
+                .addGap(101, 101, 101)
+                .addComponent(jLabel2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 367, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(btnResults)
+                .addContainerGap(98, Short.MAX_VALUE))
         );
 
         layeredPane1.add(publishResultsPanel, "card8");
@@ -1143,10 +1193,9 @@ public class AdminControlPanel extends javax.swing.JFrame {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
+    // view electors
     private void btnViewElectorsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnViewElectorsActionPerformed
 
-        // view electors
-        switchPanels(viewElectorPanel);
         DefaultTableModel model = (DefaultTableModel) electorTable.getModel();
 
         while (model.getRowCount() > 0) {
@@ -1164,6 +1213,8 @@ public class AdminControlPanel extends javax.swing.JFrame {
             model.addRow(row);
 
         }
+
+        switchPanels(viewElectorPanel);
     }//GEN-LAST:event_btnViewElectorsActionPerformed
 
     private void btnViewCandidateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnViewCandidateActionPerformed
@@ -1263,9 +1314,9 @@ public class AdminControlPanel extends javax.swing.JFrame {
 
     }//GEN-LAST:event_btnCancelActionPerformed
 
+    // create an election
     private void btnOKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnOKActionPerformed
 
-        // create an election
         if (electionTitleField.getText().equals("") || electionDateChooser.getDateEditor() == null) {
             JOptionPane.showMessageDialog(this, "Please fill all mandatory fields (*)", "Information", JOptionPane.INFORMATION_MESSAGE);
         } else {
@@ -1283,7 +1334,23 @@ public class AdminControlPanel extends javax.swing.JFrame {
                 pstm.setString(3, descriptionArea.getText());
                 count = pstm.executeUpdate();
 
-                if (count == 1) {
+                // get Id of the last created election
+                String getLastInsertId = "SELECT LAST_INSERT_ID()";
+                stm = con.createStatement();
+                rs = stm.executeQuery(getLastInsertId);
+                int lastInsertId = 0;
+                if (rs.next()) {
+                    lastInsertId = rs.getInt(1);
+                }
+
+                // insert Id of the last inserted election into election table
+                String sqlInsertId = "INSERT INTO election (polls_Id, date) VALUES (?, ?)";
+                pstm = con.prepareStatement(sqlInsertId);
+                pstm.setInt(1, lastInsertId);
+                pstm.setString(2, date);
+                int count2 = pstm.executeUpdate();
+
+                if (count > 0 && count2 > 0) {
                     JOptionPane.showMessageDialog(this, "Election created successfully!", "Information", JOptionPane.INFORMATION_MESSAGE);
                     electionTitleField.setText(null);
                     descriptionArea.setText(null);
@@ -1302,40 +1369,40 @@ public class AdminControlPanel extends javax.swing.JFrame {
 
     // delete candidate
     private void btnDeleteCandidateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteCandidateActionPerformed
-        DefaultTableModel defaultModel = (DefaultTableModel) tblListCandidate.getModel();
+        DefaultTableModel model = (DefaultTableModel) tblListCandidate.getModel();
         int selectedRow = tblListCandidate.getSelectedRow();
         if (selectedRow == -1) {
             JOptionPane.showMessageDialog(this, "Please choose candidate to delete", "Information", JOptionPane.INFORMATION_MESSAGE);
         } else {
 
             // get id of the selected record
-            Object id = defaultModel.getValueAt(selectedRow, 0);
+            Object id = model.getValueAt(selectedRow, 0);
 
             // delete the corresonding record from the database
-            String query = "DELETE FROM candidate WHERE Id = ? ";
-            String delete = "DELETE FROM election WHERE candidate_Id = ?";
-            String sql = "DELETE FROM candidate_polls WHERE candidate_Id = ?";
             try {
 
                 // delete foreign key of the record in election table
+                String delete = "DELETE FROM election WHERE candidate_Id = ?";
                 pstm = con.prepareStatement(delete);
                 pstm.setObject(1, id);
                 int count1 = pstm.executeUpdate();
 
                 // delete foreign key of the record in candidate_polls table
+                String sql = "DELETE FROM candidate_polls WHERE candidate_Id = ?";
                 pstm = con.prepareStatement(sql);
                 pstm.setObject(1, id);
                 int count2 = pstm.executeUpdate();
 
                 // delete properly the candidate
+                String query = "DELETE FROM candidate WHERE Id = ? ";
                 if (count1 == 1 && count2 == 1) {
                     pstm = con.prepareStatement(query);
                     pstm.setObject(1, id);
                     int count = pstm.executeUpdate();
                     if (count == 1) {
                         JOptionPane.showMessageDialog(this, "Candidate deleted successfuly", "Information", JOptionPane.INFORMATION_MESSAGE);
-                        defaultModel.removeRow(selectedRow);
-                        tblListCandidate.setModel(defaultModel);
+                        model.removeRow(selectedRow);
+                        tblListCandidate.setModel(model);
                     }
                 } else {
                     JOptionPane.showMessageDialog(this, "Sorry you cannot delete this candidate", "Delete candidate", JOptionPane.WARNING_MESSAGE);
@@ -1378,11 +1445,13 @@ public class AdminControlPanel extends javax.swing.JFrame {
         String password = passwordField.getText();
         String confirmPassword = confirmPasswordField.getText();
         boolean voted = false;
+        int count = 0;
         if (name.isEmpty() || login.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
             JOptionPane.showMessageDialog(null, "All fields with * must be filled!", "Message", JOptionPane.INFORMATION_MESSAGE);
         } else {
             if (password.equals(confirmPassword) && !(password.isEmpty())) {
-                if (ElectorDAO.getElectorDAO().insertElector(name, login, password, voted) != 0) {
+                count = ElectorDAO.getElectorDAO().insertElector(name, login, password, voted);
+                if (count > 0) {
                     JOptionPane.showMessageDialog(null, "Elector registered successfuly!", "Message", JOptionPane.INFORMATION_MESSAGE);
                     nameField.setText(null);
                     userNameField.setText(null);
@@ -1437,12 +1506,12 @@ public class AdminControlPanel extends javax.swing.JFrame {
                 pstm = con.prepareStatement(sql);
                 pstm.setString(1, selectedItem);
                 rs = pstm.executeQuery();
-                int idValue = 0;
+                int pollId = 0;
                 if (rs.next()) {
-                    idValue = rs.getInt(1);
+                    pollId = rs.getInt("Id");
                 }
 
-                // add election 
+                // insert candidate into Candidate table 
                 String addCandidate = "INSERT INTO Candidate (name, voices, aboutCandidate, picture) VALUES (?, ?, ?, ?)";
                 pstm = con.prepareStatement(addCandidate);
                 pstm.setString(1, candidateField.getText());
@@ -1458,8 +1527,20 @@ public class AdminControlPanel extends javax.swing.JFrame {
                 int lastInsertId = 0;
                 if (rs.next()) {
                     lastInsertId = rs.getInt(1);
-                } else {
                 }
+
+                // insert Id of the last inserted candidate into election table
+                String insertId = "UPDATE election SET candidate_Id=? WHERE candidate_Id IS NULL AND polls_Id= " + pollId + "";
+                pstm = con.prepareStatement(insertId);
+                pstm.setInt(1, lastInsertId);
+                pstm.executeUpdate();
+
+                // insert Id of the last inserted candidate into candidate_polls
+                String sqlQuery = "INSERT INTO candidate_polls (polls_Id, candidate_Id) VALUES (?, ?)";
+                pstm = con.prepareStatement(sqlQuery);
+                pstm.setInt(1, pollId);
+                pstm.setInt(2, lastInsertId);
+                pstm.executeUpdate();
 
                 // show the inserted candidate within the table of GUI
                 DefaultTableModel model = (DefaultTableModel) candidateTable.getModel();
@@ -1471,13 +1552,6 @@ public class AdminControlPanel extends javax.swing.JFrame {
                 data[4] = photoField.getText();
                 model.addRow(data);
 
-                //
-                String sqlQuery = "INSERT INTO candidate_polls (polls_Id, candidate_Id) VALUES (?, ?)";
-                pstm = con.prepareStatement(sqlQuery);
-                pstm.setInt(1, idValue);
-                pstm.setInt(2, lastInsertId);
-                pstm.executeUpdate();
-
             } catch (SQLException ex) {
                 Logger.getLogger(AdminControlPanel.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -1486,9 +1560,9 @@ public class AdminControlPanel extends javax.swing.JFrame {
 
     }//GEN-LAST:event_btnInsertCandidateActionPerformed
 
+    // attach a picture to a candidate
     private void btnPhotoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPhotoActionPerformed
 
-        // attach a picture to a candidate
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.showOpenDialog(this);
         File file = fileChooser.getSelectedFile();
@@ -1496,9 +1570,9 @@ public class AdminControlPanel extends javax.swing.JFrame {
         photoField.setText(filePath);
     }//GEN-LAST:event_btnPhotoActionPerformed
 
+    // activate election
     private void btnActivateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnActivateActionPerformed
 
-        // activate election
         if (jListElectionToActivate.getSelectedValue() == null) {
             JOptionPane.showMessageDialog(this, "Please choose an election to activate", null, JOptionPane.INFORMATION_MESSAGE);
         } else {
@@ -1649,6 +1723,72 @@ public class AdminControlPanel extends javax.swing.JFrame {
 
     }//GEN-LAST:event_btnOK3ActionPerformed
 
+    private void btnResultsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnResultsActionPerformed
+
+        String selectedItem = (String) jList1.getSelectedValue();
+        if (selectedItem != null) {
+            //get Id of the selected election
+            int Id = 0;
+            String fetchId = "SELECT Id FROM polls WHERE title = ?";
+            try {
+                pstm = con.prepareStatement(fetchId);
+                pstm.setString(1, selectedItem);
+                rs = pstm.executeQuery();
+                if (rs.next()) {
+                    Id = rs.getInt("Id");
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(AdminControlPanel.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+            // verify if the selected election is alrady published
+            boolean bool = false;
+            String verifyPublish = "SELECT published from election WHERE Id = ?";
+            try {
+                pstm = con.prepareStatement(verifyPublish);
+                pstm.setInt(1, Id);
+                rs = pstm.executeQuery();
+                if (rs.next()) {
+                    bool = rs.getBoolean("published");
+                }
+
+                if (bool == true) {
+                    JOptionPane.showMessageDialog(this, "Results of this election are already published");
+                } else {
+                    String publish = "UPDATE election SET published = '1' WHERE polls_Id = ?";
+                    pstm = con.prepareStatement(publish);
+                    pstm.setInt(1, Id);
+                    pstm.executeUpdate();
+                    JOptionPane.showMessageDialog(this, "Election published");
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(AdminControlPanel.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Please select election to publish results");
+        }
+
+    }//GEN-LAST:event_btnResultsActionPerformed
+
+    private void btnDeleteElectorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteElectorActionPerformed
+        DefaultTableModel model = (DefaultTableModel) electorTable.getModel();
+        int selectedRow = electorTable.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Please choose elector to delete", "Information", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            // get id of the selected record
+            Object id = model.getValueAt(selectedRow, 0);
+            Integer rowId = (Integer) id;
+            int value = ElectorDAO.getElectorDAO().deleteElector(rowId);
+            if (value == 1) {
+                JOptionPane.showMessageDialog(this, "Elector deleted");
+                model.removeRow(selectedRow);   
+            } else {
+                JOptionPane.showMessageDialog(this, "You cannot delete this elector");
+            }
+        }
+    }//GEN-LAST:event_btnDeleteElectorActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -1700,7 +1840,6 @@ public class AdminControlPanel extends javax.swing.JFrame {
     private javax.swing.JButton btnDeleteElector;
     private javax.swing.JButton btnEditCandidade;
     private javax.swing.JButton btnEditElection;
-    private javax.swing.JButton btnFinish;
     private javax.swing.JButton btnInsertCandidate;
     private javax.swing.JButton btnOK;
     private javax.swing.JButton btnOK3;
@@ -1708,6 +1847,7 @@ public class AdminControlPanel extends javax.swing.JFrame {
     private javax.swing.JButton btnPublishResults;
     private javax.swing.JButton btnRegisterElector;
     private javax.swing.JButton btnReset;
+    private javax.swing.JButton btnResults;
     private javax.swing.JButton btnSubmit;
     private javax.swing.JButton btnViewCandidate;
     private javax.swing.JButton btnViewElection;
@@ -1732,8 +1872,9 @@ public class AdminControlPanel extends javax.swing.JFrame {
     private javax.swing.JComboBox jComboBox2;
     private com.toedter.calendar.JDateChooser jDateChooser1;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabelChoseElection;
+    private javax.swing.JList jList1;
     private javax.swing.JList jListElectionToActivate;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenuBar jMenuBar1;
@@ -1741,6 +1882,7 @@ public class AdminControlPanel extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JScrollPane jScrollPane7;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;

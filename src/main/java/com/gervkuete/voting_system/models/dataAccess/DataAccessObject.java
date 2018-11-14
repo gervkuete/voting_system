@@ -10,6 +10,5 @@ public interface DataAccessObject<Elector> {
     Elector getElector(String login, String password);
     List<Elector> getAllElectors();
     int insertElector(String name, String login, String password, boolean voted);
-    void updateElector(Elector elector);
-    int deleteElector(String login);
+    int deleteElector(int id);
 }

@@ -1,9 +1,12 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.gervkuete.voting_system.models;
+
+import com.gervkuete.voting_system.models.dataAccess.DatabaseConnection;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -17,7 +20,6 @@ public class Candidate {
     private String aboutCandidate;
     private int voices;
 
-
     public Candidate() {
     }
 
@@ -29,8 +31,36 @@ public class Candidate {
         this.voices = voices;
     }
 
+    // add candidate voices 
     public void addVoice() {
-        voices++;
+        Connection con = DatabaseConnection.getConnection();
+        PreparedStatement pstm = null;
+        ResultSet rs = null;
+        int increaseVoices = 0;
+        String getVoices = "SELECT voices FROM candidate WHERE name = ?";
+        try {
+            pstm = con.prepareStatement(getVoices);
+            pstm.setString(1, this.name);
+            rs = pstm.executeQuery();
+            if (rs.next()) {
+                increaseVoices = rs.getInt("Voices");
+                increaseVoices++;
+
+                String updateVoices = "UPDATE candidate SET voices = " + increaseVoices + " WHERE name = ?";
+                pstm = con.prepareStatement(updateVoices);
+                pstm.setString(1, this.name);
+                pstm.executeUpdate();
+
+            }
+
+        } catch (SQLException ex) {
+            Logger.getLogger(Candidate.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            DatabaseConnection.closeResultSet(rs);
+            DatabaseConnection.closePrepareStatement(pstm);
+            DatabaseConnection.closeConnection(con);
+        }
+
     }
 
     public int getId() {
@@ -67,6 +97,11 @@ public class Candidate {
 
     public int getVoices() {
         return voices;
+    }
+
+    @Override
+    public String toString() {
+        return name + " " + voices;
     }
 
 }
